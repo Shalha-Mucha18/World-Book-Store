@@ -8,7 +8,6 @@ from src.db.main import get_session
 from sqlalchemy.ext.asyncio import AsyncSession
 from .service import BookService
 
-
 books_router = APIRouter()
 book_service = BookService()
 
@@ -26,7 +25,7 @@ async def create_book(book_data: BookCreate, session: AsyncSession = Depends(get
     return new_book
 
 
-@books_router.get("/{book_id}", response_model=Book)
+@books_router.get("/{book_id}", response_model=List[Book])
 async def get_book(book_id: UUID, session:AsyncSession = Depends(get_session) ) -> Book:
     book = await book_service.get_book_by_uid(session, book_id)
     if book is None:
@@ -36,7 +35,7 @@ async def get_book(book_id: UUID, session:AsyncSession = Depends(get_session) ) 
         )
     return book
 
-@books_router.patch("/{book_id}", response_model=Book)
+@books_router.patch("/{book_id}", response_model=List[Book])
 async def update_book(book_id: UUID, book_update_data: BookUpdate, session:AsyncSession = Depends(get_session) ) -> Book:
     updated_book = await book_service.update_book(book_id, book_update_data, session)
     if updated_book is None:
@@ -49,10 +48,13 @@ async def update_book(book_id: UUID, book_update_data: BookUpdate, session:Async
 
 @books_router.delete("/{book_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_book(book_id: UUID,session:AsyncSession = Depends(get_session) ) -> None:
-    success = await book_service.delete_book(session, book_id)
-    if not success:
+    book_to_delete = await book_service.delete_book(session, book_id)
+    if book_to_delete is not None:
+        await session.delete(book_to_delete)
+        await session.commit()
+        return {}
+    else:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Book with id {book_id} not found",
-        )
-    return None
+        )    

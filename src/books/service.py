@@ -43,8 +43,6 @@ class BookService:
     async def delete_book(self, session: AsyncSession, uid: UUID):
         book_to_delete = await self.get_book_by_uid(session, uid)
         if book_to_delete is not None:
-            await session.delete(book_to_delete)
-            await session.commit()
-            return True
+            return book_to_delete
         else:
-            return False
+            return None

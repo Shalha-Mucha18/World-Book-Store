@@ -8,11 +8,11 @@ class Book(SQLModel, table=True):
     __tablename__ = "books"  # Explicit table name
 
     id: uuid.UUID = Field(
-        sa_column=Column(  # ✅ "Column", not "CLoumn"
+        sa_column=Column(  
             pg.UUID(as_uuid=True),
             nullable=False,
             primary_key=True,
-            default=uuid.uuid4,  # ✅ pass the function, not call it
+            default=uuid.uuid4, 
         )
     )
 
